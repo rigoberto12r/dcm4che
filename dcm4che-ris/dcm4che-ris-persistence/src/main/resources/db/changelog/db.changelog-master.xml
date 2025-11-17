@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        dcm4che-ris Database Schema Changelog Master File
+
+        This file includes all changesets in dependency order:
+        1. Independent entities (no foreign keys)
+        2. Dependent entities (with foreign keys)
+        3. Indexes and constraints
+    -->
+
+    <!-- Version 1.0.0: Initial Schema -->
+    <include file="db/changelog/v1.0.0/001-create-patient-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/v1.0.0/002-create-physician-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/v1.0.0/003-create-user-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/v1.0.0/004-create-modality-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/v1.0.0/005-create-procedure-catalog-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/v1.0.0/006-create-report-template-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/v1.0.0/007-create-visit-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/v1.0.0/008-create-imaging-service-request-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/v1.0.0/009-create-requested-procedure-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/v1.0.0/010-create-scheduled-procedure-step-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/v1.0.0/011-create-performed-procedure-step-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/v1.0.0/012-create-study-table.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/v1.0.0/013-create-report-table.xml" relativeToChangelogFile="false"/>
+
+</databaseChangeLog>
