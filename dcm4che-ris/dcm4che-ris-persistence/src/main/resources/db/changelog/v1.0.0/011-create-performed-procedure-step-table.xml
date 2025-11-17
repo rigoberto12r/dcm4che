@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="011-create-performed-procedure-step-table" author="dcm4che-ris">
+        <comment>Create performed_procedure_step table - DICOM MPPS (Modality Performed Procedure Step)</comment>
+
+        <createTable tableName="performed_procedure_step" remarks="Performed Procedure Steps - DICOM MPPS data from modalities">
+            <!-- Primary Key -->
+            <column name="pps_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- Scheduled Procedure Step Reference -->
+            <column name="sps_id" type="BIGINT" remarks="Related scheduled procedure step">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- DICOM MPPS Identifiers -->
+            <column name="sop_instance_uid" type="VARCHAR(64)" remarks="DICOM (0008,0018) SOP Instance UID of MPPS">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="performed_procedure_step_id" type="VARCHAR(16)" remarks="DICOM (0040,0253) Performed Procedure Step ID"/>
+
+            <!-- Performed Station Information -->
+            <column name="performed_station_ae_title" type="VARCHAR(16)" remarks="DICOM (0040,0241) Performed Station AE Title">
+                <constraints nullable="false"/>
+            </column>
+            <column name="performed_station_name" type="VARCHAR(64)" remarks="DICOM (0040,0242) Performed Station Name"/>
+            <column name="performed_location" type="VARCHAR(64)" remarks="DICOM (0040,0243) Performed Location"/>
+
+            <!-- Performing Physician -->
+            <column name="performing_physician_id" type="BIGINT" remarks="DICOM (0008,1050) Performing Physician's Name"/>
+
+            <!-- PPS Status -->
+            <column name="pps_status" type="VARCHAR(32)" defaultValue="IN_PROGRESS" remarks="IN_PROGRESS, COMPLETED, DISCONTINUED">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Performed Procedure Information -->
+            <column name="performed_procedure_type_description" type="VARCHAR(255)" remarks="DICOM (0040,0254) Performed Procedure Type Description"/>
+            <column name="performed_protocol_code" type="VARCHAR(64)" remarks="DICOM (0040,0260) Performed Protocol Code Sequence"/>
+
+            <!-- Timing -->
+            <column name="pps_start_date_time" type="TIMESTAMP" remarks="DICOM (0040,0244) Performed Procedure Step Start Date/Time">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pps_end_date_time" type="TIMESTAMP" remarks="DICOM (0040,0250) Performed Procedure Step End Date/Time"/>
+
+            <!-- Study Information -->
+            <column name="study_instance_uid" type="VARCHAR(64)" remarks="DICOM (0020,000D) Study Instance UID"/>
+            <column name="number_of_series" type="INTEGER" remarks="Number of series in this PPS"/>
+            <column name="number_of_instances" type="INTEGER" remarks="Total number of instances in this PPS"/>
+
+            <!-- Radiation Dose Information -->
+            <column name="dose_area_product" type="DOUBLE" remarks="Dose Area Product in dGy·cm² (for fluoroscopy/XA)"/>
+            <column name="total_fluoroscopy_time" type="DOUBLE" remarks="Total Fluoroscopy Time in seconds"/>
+
+            <!-- Discontinuation Information -->
+            <column name="discontinuation_reason" type="VARCHAR(255)" remarks="DICOM (0040,0281) Performed Procedure Step Discontinuation Reason Code"/>
+
+            <!-- Comments -->
+            <column name="comments" type="TEXT" remarks="DICOM (0040,0280) Comments on the Performed Procedure Step"/>
+
+            <!-- Audit Fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign Keys -->
+        <addForeignKeyConstraint
+                baseTableName="performed_procedure_step"
+                baseColumnNames="sps_id"
+                constraintName="fk_pps_scheduled_procedure_step"
+                referencedTableName="scheduled_procedure_step"
+                referencedColumnNames="sps_id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="performed_procedure_step"
+                baseColumnNames="performing_physician_id"
+                constraintName="fk_pps_performing_physician"
+                referencedTableName="physician"
+                referencedColumnNames="physician_id"
+                onDelete="SET NULL"/>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_pps_sop_instance_uid" tableName="performed_procedure_step">
+            <column name="sop_instance_uid"/>
+        </createIndex>
+
+        <createIndex indexName="idx_pps_sps" tableName="performed_procedure_step">
+            <column name="sps_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_pps_status" tableName="performed_procedure_step">
+            <column name="pps_status"/>
+        </createIndex>
+
+        <createIndex indexName="idx_pps_ae_title" tableName="performed_procedure_step">
+            <column name="performed_station_ae_title"/>
+        </createIndex>
+
+        <createIndex indexName="idx_pps_study_uid" tableName="performed_procedure_step">
+            <column name="study_instance_uid"/>
+        </createIndex>
+
+        <createIndex indexName="idx_pps_start_datetime" tableName="performed_procedure_step">
+            <column name="pps_start_date_time"/>
+        </createIndex>
+
+        <createIndex indexName="idx_pps_physician" tableName="performed_procedure_step">
+            <column name="performing_physician_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

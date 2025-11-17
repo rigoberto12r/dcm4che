@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="007-create-visit-table" author="dcm4che-ris">
+        <comment>Create visit table - HL7 ADT compliant visit/admission/encounter tracking</comment>
+
+        <createTable tableName="visit" remarks="Patient visits/admissions/encounters - HL7 ADT compliant">
+            <!-- Primary Key -->
+            <column name="visit_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- Patient Reference -->
+            <column name="patient_id" type="BIGINT" remarks="Patient for this visit">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- HL7 Visit Identification -->
+            <column name="admission_id" type="VARCHAR(64)" remarks="HL7 PV1-19: Visit Number">
+                <constraints unique="true"/>
+            </column>
+
+            <!-- Visit Classification -->
+            <column name="visit_type" type="VARCHAR(16)" defaultValue="OUTPATIENT" remarks="HL7 PV1-2: Patient Class - OUTPATIENT, INPATIENT, EMERGENCY, PREADMIT, RECURRING, OBSERVATION">
+                <constraints nullable="false"/>
+            </column>
+            <column name="visit_status" type="VARCHAR(16)" defaultValue="ACTIVE" remarks="ACTIVE, DISCHARGED, CANCELED, PENDING">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Admission/Discharge -->
+            <column name="admission_date" type="TIMESTAMP" remarks="HL7 PV1-44: Admit Date/Time"/>
+            <column name="discharge_date" type="TIMESTAMP" remarks="HL7 PV1-45: Discharge Date/Time"/>
+
+            <!-- Physicians -->
+            <column name="attending_physician_id" type="BIGINT" remarks="HL7 PV1-7: Attending Doctor"/>
+            <column name="referring_physician_id" type="BIGINT" remarks="HL7 PV1-8: Referring Doctor"/>
+            <column name="consulting_physician_id" type="BIGINT" remarks="HL7 PV1-9: Consulting Doctor"/>
+
+            <!-- Hospital Service -->
+            <column name="hospital_service" type="VARCHAR(64)" remarks="HL7 PV1-10: Hospital Service (CARDIOLOGY, NEUROLOGY, etc.)"/>
+            <column name="admission_source" type="VARCHAR(64)" remarks="HL7 PV1-14: Admit Source (PHYSICIAN_REFERRAL, EMERGENCY_ROOM, etc.)"/>
+            <column name="admission_type" type="VARCHAR(32)" remarks="HL7 PV1-4: Admission Type (ELECTIVE, EMERGENCY, URGENT, etc.)"/>
+            <column name="is_readmission" type="BOOLEAN" defaultValueBoolean="false" remarks="HL7 PV1-13: Re-admission Indicator">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Patient Location - HL7 PV1-3: Assigned Patient Location -->
+            <column name="ward" type="VARCHAR(64)" remarks="Ward/Building - Point of Care"/>
+            <column name="room" type="VARCHAR(32)" remarks="Room number"/>
+            <column name="bed" type="VARCHAR(32)" remarks="Bed number"/>
+            <column name="facility" type="VARCHAR(64)" remarks="Facility/building"/>
+            <column name="prior_location" type="VARCHAR(128)" remarks="HL7 PV1-6: Prior Patient Location (for transfers)"/>
+
+            <!-- Discharge Information -->
+            <column name="discharge_disposition" type="VARCHAR(64)" remarks="HL7 PV1-36: Discharge Disposition (HOME, SKILLED_NURSING, EXPIRED, etc.)"/>
+            <column name="discharge_to_location" type="VARCHAR(128)" remarks="HL7 PV1-37: Discharged to Location"/>
+
+            <!-- Clinical -->
+            <column name="diagnosis" type="TEXT" remarks="Primary diagnosis for this visit"/>
+            <column name="diagnosis_code" type="VARCHAR(32)" remarks="ICD-10 diagnosis code"/>
+
+            <!-- Financial -->
+            <column name="financial_class" type="VARCHAR(32)" remarks="HL7 PV1-20: Financial Class (INSURANCE, MEDICARE, MEDICAID, SELF_PAY, etc.)"/>
+
+            <!-- Flags -->
+            <column name="is_vip" type="BOOLEAN" defaultValueBoolean="false" remarks="HL7 PV1-16: VIP Indicator">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Notes -->
+            <column name="notes" type="TEXT" remarks="Visit notes"/>
+
+            <!-- Audit Fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign Keys -->
+        <addForeignKeyConstraint
+                baseTableName="visit"
+                baseColumnNames="patient_id"
+                constraintName="fk_visit_patient"
+                referencedTableName="patient"
+                referencedColumnNames="patient_id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="visit"
+                baseColumnNames="attending_physician_id"
+                constraintName="fk_visit_attending_physician"
+                referencedTableName="physician"
+                referencedColumnNames="physician_id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="visit"
+                baseColumnNames="referring_physician_id"
+                constraintName="fk_visit_referring_physician"
+                referencedTableName="physician"
+                referencedColumnNames="physician_id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="visit"
+                baseColumnNames="consulting_physician_id"
+                constraintName="fk_visit_consulting_physician"
+                referencedTableName="physician"
+                referencedColumnNames="physician_id"
+                onDelete="SET NULL"/>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_visit_patient" tableName="visit">
+            <column name="patient_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_visit_admission_id" tableName="visit">
+            <column name="admission_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_visit_type" tableName="visit">
+            <column name="visit_type"/>
+        </createIndex>
+
+        <createIndex indexName="idx_visit_status" tableName="visit">
+            <column name="visit_status"/>
+        </createIndex>
+
+        <createIndex indexName="idx_visit_admission_date" tableName="visit">
+            <column name="admission_date"/>
+        </createIndex>
+
+        <createIndex indexName="idx_visit_attending" tableName="visit">
+            <column name="attending_physician_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

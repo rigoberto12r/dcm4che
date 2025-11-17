@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="003-create-user-table" author="dcm4che-ris">
+        <comment>Create user table - System users and authentication</comment>
+
+        <createTable tableName="user" remarks="System users with authentication and authorization">
+            <!-- Primary Key -->
+            <column name="user_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- Authentication -->
+            <column name="username" type="VARCHAR(64)" remarks="Unique username for login">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(255)" remarks="bcrypt hashed password">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(128)" remarks="User email">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <!-- User Profile -->
+            <column name="full_name" type="VARCHAR(255)" remarks="Full name">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(32)" remarks="User role: ADMIN, RADIOLOGIST, TECHNOLOGIST, CLERK, RESIDENT, FELLOW">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Link to Physician (optional - for radiologists) -->
+            <column name="physician_id" type="BIGINT" remarks="Reference to physician table if user is a doctor"/>
+
+            <!-- Password Management -->
+            <column name="must_change_password" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password_changed_at" type="TIMESTAMP" remarks="Last password change date"/>
+            <column name="password_expires_at" type="TIMESTAMP" remarks="Password expiration date"/>
+
+            <!-- Security -->
+            <column name="failed_login_attempts" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_locked" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="account_locked_until" type="TIMESTAMP" remarks="Auto-unlock after this timestamp"/>
+            <column name="two_factor_enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="two_factor_secret" type="VARCHAR(255)" remarks="TOTP secret for 2FA"/>
+
+            <!-- Session Tracking -->
+            <column name="last_login" type="TIMESTAMP" remarks="Last successful login timestamp"/>
+            <column name="last_login_ip" type="VARCHAR(45)" remarks="Last login IP address (IPv6 compatible)"/>
+
+            <!-- Status -->
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Audit Fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign Key to Physician -->
+        <addForeignKeyConstraint
+                baseTableName="user"
+                baseColumnNames="physician_id"
+                constraintName="fk_user_physician"
+                referencedTableName="physician"
+                referencedColumnNames="physician_id"
+                onDelete="SET NULL"/>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_user_username" tableName="user">
+            <column name="username"/>
+        </createIndex>
+
+        <createIndex indexName="idx_user_email" tableName="user">
+            <column name="email"/>
+        </createIndex>
+
+        <createIndex indexName="idx_user_role" tableName="user">
+            <column name="role"/>
+        </createIndex>
+
+        <createIndex indexName="idx_user_active" tableName="user">
+            <column name="is_active"/>
+        </createIndex>
+
+        <createIndex indexName="idx_user_last_login" tableName="user">
+            <column name="last_login"/>
+        </createIndex>
+
+        <createIndex indexName="idx_user_physician" tableName="user">
+            <column name="physician_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

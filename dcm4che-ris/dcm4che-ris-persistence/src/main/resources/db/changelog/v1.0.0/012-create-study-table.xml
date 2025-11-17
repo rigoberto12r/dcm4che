@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="012-create-study-table" author="dcm4che-ris">
+        <comment>Create study table - DICOM Study Module for imaging studies</comment>
+
+        <createTable tableName="study" remarks="DICOM Studies received from modalities/PACS">
+            <!-- Primary Key -->
+            <column name="study_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- Patient Reference -->
+            <column name="patient_id" type="BIGINT" remarks="Patient for this study">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Requested Procedure Reference (optional - study may arrive without order) -->
+            <column name="requested_procedure_id" type="BIGINT" remarks="Related requested procedure (if ordered)"/>
+
+            <!-- DICOM Study Identifiers -->
+            <column name="study_instance_uid" type="VARCHAR(64)" remarks="DICOM (0020,000D) Study Instance UID">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="accession_number" type="VARCHAR(16)" remarks="DICOM (0008,0050) Accession Number"/>
+
+            <!-- Study Date and Time -->
+            <column name="study_date" type="DATE" remarks="DICOM (0008,0020) Study Date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="study_time" type="TIME" remarks="DICOM (0008,0030) Study Time"/>
+
+            <!-- Study Description -->
+            <column name="study_id_dicom" type="VARCHAR(16)" remarks="DICOM (0020,0010) Study ID"/>
+            <column name="study_description" type="VARCHAR(255)" remarks="DICOM (0008,1030) Study Description"/>
+
+            <!-- Modalities in Study -->
+            <column name="modalities_in_study" type="VARCHAR(64)" remarks="DICOM (0008,0061) Modalities in Study - comma-separated list"/>
+
+            <!-- Referring Physician -->
+            <column name="referring_physician_id" type="BIGINT" remarks="DICOM (0008,0090) Referring Physician's Name"/>
+
+            <!-- Study Statistics -->
+            <column name="number_of_series" type="INTEGER" remarks="DICOM (0020,1206) Number of Study Related Series"/>
+            <column name="number_of_instances" type="INTEGER" remarks="DICOM (0020,1208) Number of Study Related Instances"/>
+
+            <!-- Study Status -->
+            <column name="study_status" type="VARCHAR(32)" defaultValue="SCHEDULED" remarks="SCHEDULED, RECEIVED, PRELIMINARY, FINAL, AMENDED"/>
+
+            <!-- Study Priority -->
+            <column name="study_priority" type="VARCHAR(16)" defaultValue="ROUTINE" remarks="ROUTINE, URGENT, STAT"/>
+
+            <!-- PACS Integration -->
+            <column name="pacs_url" type="VARCHAR(255)" remarks="URL to view study in PACS/viewer"/>
+            <column name="study_received_date" type="TIMESTAMP" remarks="Date/time study was received in PACS"/>
+
+            <!-- Reading Assignment -->
+            <column name="assigned_radiologist_id" type="BIGINT" remarks="Radiologist assigned to read this study"/>
+            <column name="reading_priority" type="INTEGER" remarks="Reading priority (1=highest)"/>
+
+            <!-- Audit Fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign Keys -->
+        <addForeignKeyConstraint
+                baseTableName="study"
+                baseColumnNames="patient_id"
+                constraintName="fk_study_patient"
+                referencedTableName="patient"
+                referencedColumnNames="patient_id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="study"
+                baseColumnNames="requested_procedure_id"
+                constraintName="fk_study_requested_procedure"
+                referencedTableName="requested_procedure"
+                referencedColumnNames="requested_procedure_id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="study"
+                baseColumnNames="referring_physician_id"
+                constraintName="fk_study_referring_physician"
+                referencedTableName="physician"
+                referencedColumnNames="physician_id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="study"
+                baseColumnNames="assigned_radiologist_id"
+                constraintName="fk_study_assigned_radiologist"
+                referencedTableName="physician"
+                referencedColumnNames="physician_id"
+                onDelete="SET NULL"/>
+
+        <!-- Indexes - CRITICAL FOR STUDY QUERIES -->
+        <createIndex indexName="idx_study_instance_uid" tableName="study">
+            <column name="study_instance_uid"/>
+        </createIndex>
+
+        <createIndex indexName="idx_study_accession_number" tableName="study">
+            <column name="accession_number"/>
+        </createIndex>
+
+        <createIndex indexName="idx_study_patient" tableName="study">
+            <column name="patient_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_study_date" tableName="study">
+            <column name="study_date"/>
+        </createIndex>
+
+        <createIndex indexName="idx_study_modalities" tableName="study">
+            <column name="modalities_in_study"/>
+        </createIndex>
+
+        <createIndex indexName="idx_study_status" tableName="study">
+            <column name="study_status"/>
+        </createIndex>
+
+        <createIndex indexName="idx_study_referring_physician" tableName="study">
+            <column name="referring_physician_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_study_assigned_radiologist" tableName="study">
+            <column name="assigned_radiologist_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_study_received_date" tableName="study">
+            <column name="study_received_date"/>
+        </createIndex>
+
+        <!-- Composite index for common queries -->
+        <createIndex indexName="idx_study_date_status" tableName="study">
+            <column name="study_date"/>
+            <column name="study_status"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

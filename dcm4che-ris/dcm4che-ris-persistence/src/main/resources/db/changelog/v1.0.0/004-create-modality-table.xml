@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="004-create-modality-table" author="dcm4che-ris">
+        <comment>Create modality table - DICOM modality/device configuration</comment>
+
+        <createTable tableName="modality" remarks="DICOM modalities and imaging devices">
+            <!-- Primary Key -->
+            <column name="modality_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- DICOM Configuration -->
+            <column name="ae_title" type="VARCHAR(16)" remarks="DICOM Application Entity Title">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="modality_type" type="VARCHAR(16)" remarks="Modality type: CT, MR, CR, DX, US, NM, PT, MG, XA, RF, etc.">
+                <constraints nullable="false"/>
+            </column>
+            <column name="station_name" type="VARCHAR(64)" remarks="Station Name (0008,1010)"/>
+
+            <!-- Network Configuration -->
+            <column name="ip_address" type="VARCHAR(45)" remarks="IP address (IPv6 compatible)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="dicom_port" type="INTEGER" defaultValueNumeric="104" remarks="DICOM listening port">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- DICOM Services Support -->
+            <column name="supports_mwl" type="BOOLEAN" defaultValueBoolean="false" remarks="Supports Modality Worklist (C-FIND)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="supports_mpps" type="BOOLEAN" defaultValueBoolean="false" remarks="Supports MPPS (N-CREATE/N-SET)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="supports_storage" type="BOOLEAN" defaultValueBoolean="true" remarks="Supports DICOM Storage (C-STORE)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="supports_storage_commitment" type="BOOLEAN" defaultValueBoolean="false" remarks="Supports Storage Commitment">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Device Information -->
+            <column name="manufacturer" type="VARCHAR(64)" remarks="Manufacturer (0008,0070)"/>
+            <column name="model_name" type="VARCHAR(64)" remarks="Manufacturer's Model Name (0008,1090)"/>
+            <column name="serial_number" type="VARCHAR(64)" remarks="Device Serial Number (0018,1000)"/>
+            <column name="software_version" type="VARCHAR(64)" remarks="Software Versions (0018,1020)"/>
+
+            <!-- Location -->
+            <column name="location" type="VARCHAR(128)" remarks="Physical location of the device"/>
+            <column name="department" type="VARCHAR(64)" remarks="Department"/>
+
+            <!-- Maintenance -->
+            <column name="installation_date" type="DATE" remarks="Installation date"/>
+            <column name="last_service_date" type="TIMESTAMP" remarks="Last maintenance/service date"/>
+            <column name="next_service_date" type="TIMESTAMP" remarks="Scheduled next service date"/>
+
+            <!-- Status -->
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Notes -->
+            <column name="notes" type="TEXT" remarks="Additional notes about the device"/>
+
+            <!-- Audit Fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_modality_ae_title" tableName="modality">
+            <column name="ae_title"/>
+        </createIndex>
+
+        <createIndex indexName="idx_modality_type" tableName="modality">
+            <column name="modality_type"/>
+        </createIndex>
+
+        <createIndex indexName="idx_modality_location" tableName="modality">
+            <column name="location"/>
+        </createIndex>
+
+        <createIndex indexName="idx_modality_active" tableName="modality">
+            <column name="is_active"/>
+        </createIndex>
+
+        <createIndex indexName="idx_modality_mwl" tableName="modality">
+            <column name="supports_mwl"/>
+        </createIndex>
+
+        <createIndex indexName="idx_modality_mpps" tableName="modality">
+            <column name="supports_mpps"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

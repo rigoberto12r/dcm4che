@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="013-create-report-table" author="dcm4che-ris">
+        <comment>Create report table - Radiology reports with workflow and digital signatures</comment>
+
+        <createTable tableName="report" remarks="Radiology reports with complete workflow management">
+            <!-- Primary Key -->
+            <column name="report_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- Study Reference -->
+            <column name="study_id" type="BIGINT" remarks="Associated DICOM study">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Report Template Reference (optional) -->
+            <column name="template_id" type="BIGINT" remarks="Template used to create this report"/>
+
+            <!-- Report Status -->
+            <column name="report_status" type="VARCHAR(32)" defaultValue="PENDING" remarks="PENDING, DRAFT, PRELIMINARY, FINAL, AMENDED, CORRECTED, ADDENDUM">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Report Priority -->
+            <column name="report_priority" type="VARCHAR(16)" defaultValue="ROUTINE" remarks="ROUTINE, URGENT, STAT"/>
+
+            <!-- Report Content -->
+            <column name="dictation_text" type="TEXT" remarks="Raw dictation/voice-to-text"/>
+            <column name="final_report_text" type="TEXT" remarks="Complete formatted report"/>
+
+            <!-- Structured Report Sections -->
+            <column name="findings" type="TEXT" remarks="Findings section"/>
+            <column name="impression" type="TEXT" remarks="Impression/Conclusion section"/>
+            <column name="recommendations" type="TEXT" remarks="Recommendations section"/>
+            <column name="comparison_text" type="TEXT" remarks="Comparison with prior studies"/>
+            <column name="technique_text" type="TEXT" remarks="Imaging technique description"/>
+            <column name="clinical_history" type="TEXT" remarks="Clinical history/indication"/>
+
+            <!-- Dictation Information -->
+            <column name="dictated_by_user_id" type="BIGINT" remarks="User who dictated/created the report"/>
+            <column name="dictated_at" type="TIMESTAMP" remarks="Dictation timestamp"/>
+
+            <!-- Verification/Signing Information -->
+            <column name="verified_by_user_id" type="BIGINT" remarks="Radiologist who verified/signed the report"/>
+            <column name="verified_at" type="TIMESTAMP" remarks="Verification/signature timestamp"/>
+            <column name="signature" type="TEXT" remarks="Digital signature data"/>
+
+            <!-- Amendment Information -->
+            <column name="amended_by_user_id" type="BIGINT" remarks="User who amended the report"/>
+            <column name="amended_at" type="TIMESTAMP" remarks="Amendment timestamp"/>
+            <column name="amendment_reason" type="TEXT" remarks="Reason for amendment"/>
+            <column name="original_report_id" type="BIGINT" remarks="Reference to original report (for addenda/amendments)"/>
+
+            <!-- Report Locking (for concurrent editing prevention) -->
+            <column name="locked_by_user_id" type="BIGINT" remarks="User who currently has the report locked for editing"/>
+            <column name="locked_at" type="TIMESTAMP" remarks="Lock acquisition timestamp"/>
+
+            <!-- Turnaround Time Tracking -->
+            <column name="study_received_at" type="TIMESTAMP" remarks="When study was received (copied from study)"/>
+            <column name="report_started_at" type="TIMESTAMP" remarks="When reporting began"/>
+            <column name="report_completed_at" type="TIMESTAMP" remarks="When report was finalized"/>
+
+            <!-- Distribution -->
+            <column name="sent_to_referring_physician" type="BOOLEAN" defaultValueBoolean="false" remarks="Report sent to referring physician">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sent_at" type="TIMESTAMP" remarks="When report was sent/distributed"/>
+
+            <!-- Critical Findings -->
+            <column name="has_critical_findings" type="BOOLEAN" defaultValueBoolean="false" remarks="Report contains critical/urgent findings">
+                <constraints nullable="false"/>
+            </column>
+            <column name="critical_findings_notified" type="BOOLEAN" defaultValueBoolean="false" remarks="Critical findings notification sent">
+                <constraints nullable="false"/>
+            </column>
+            <column name="notified_at" type="TIMESTAMP" remarks="Critical findings notification timestamp"/>
+
+            <!-- Audit Fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign Keys -->
+        <addForeignKeyConstraint
+                baseTableName="report"
+                baseColumnNames="study_id"
+                constraintName="fk_report_study"
+                referencedTableName="study"
+                referencedColumnNames="study_id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="report"
+                baseColumnNames="template_id"
+                constraintName="fk_report_template"
+                referencedTableName="report_template"
+                referencedColumnNames="template_id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="report"
+                baseColumnNames="dictated_by_user_id"
+                constraintName="fk_report_dictated_by"
+                referencedTableName="user"
+                referencedColumnNames="user_id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="report"
+                baseColumnNames="verified_by_user_id"
+                constraintName="fk_report_verified_by"
+                referencedTableName="user"
+                referencedColumnNames="user_id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="report"
+                baseColumnNames="amended_by_user_id"
+                constraintName="fk_report_amended_by"
+                referencedTableName="user"
+                referencedColumnNames="user_id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="report"
+                baseColumnNames="locked_by_user_id"
+                constraintName="fk_report_locked_by"
+                referencedTableName="user"
+                referencedColumnNames="user_id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="report"
+                baseColumnNames="original_report_id"
+                constraintName="fk_report_original"
+                referencedTableName="report"
+                referencedColumnNames="report_id"
+                onDelete="SET NULL"/>
+
+        <!-- Indexes - CRITICAL FOR REPORT QUERIES -->
+        <createIndex indexName="idx_report_study" tableName="report">
+            <column name="study_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_report_status" tableName="report">
+            <column name="report_status"/>
+        </createIndex>
+
+        <createIndex indexName="idx_report_priority" tableName="report">
+            <column name="report_priority"/>
+        </createIndex>
+
+        <createIndex indexName="idx_report_dictated_by" tableName="report">
+            <column name="dictated_by_user_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_report_verified_by" tableName="report">
+            <column name="verified_by_user_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_report_verified_at" tableName="report">
+            <column name="verified_at"/>
+        </createIndex>
+
+        <createIndex indexName="idx_report_locked_by" tableName="report">
+            <column name="locked_by_user_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_report_created_at" tableName="report">
+            <column name="created_at"/>
+        </createIndex>
+
+        <createIndex indexName="idx_report_critical_findings" tableName="report">
+            <column name="has_critical_findings"/>
+        </createIndex>
+
+        <!-- Composite indexes for common queries -->
+        <createIndex indexName="idx_report_status_priority" tableName="report">
+            <column name="report_status"/>
+            <column name="report_priority"/>
+        </createIndex>
+
+        <createIndex indexName="idx_report_radiologist_date" tableName="report">
+            <column name="verified_by_user_id"/>
+            <column name="verified_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="002-create-physician-table" author="dcm4che-ris">
+        <comment>Create physician table - Radiologists and referring physicians</comment>
+
+        <createTable tableName="physician" remarks="Physicians, radiologists, and referring doctors">
+            <!-- Primary Key -->
+            <column name="physician_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- DICOM Person Name -->
+            <column name="physician_name" type="VARCHAR(255)" remarks="Physician's Name in PN format: Last^First^Middle^Prefix^Suffix">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Professional Identifiers -->
+            <column name="npi" type="VARCHAR(16)" remarks="National Provider Identifier (US)">
+                <constraints unique="true"/>
+            </column>
+            <column name="dea_number" type="VARCHAR(16)" remarks="DEA Registration Number"/>
+            <column name="license_number" type="VARCHAR(64)" remarks="Medical License Number">
+                <constraints unique="true"/>
+            </column>
+            <column name="license_state" type="VARCHAR(16)" remarks="State/Province of medical license"/>
+
+            <!-- Specialization -->
+            <column name="specialty" type="VARCHAR(64)" remarks="Primary medical specialty"/>
+            <column name="sub_specialty" type="VARCHAR(64)" remarks="Sub-specialty or fellowship"/>
+            <column name="physician_type" type="VARCHAR(32)" remarks="RADIOLOGIST, REFERRING, CONSULTING, etc."/>
+
+            <!-- Contact Information -->
+            <column name="email" type="VARCHAR(128)" remarks="Physician's email"/>
+            <column name="phone" type="VARCHAR(64)" remarks="Telephone number"/>
+            <column name="office_address" type="VARCHAR(255)" remarks="Office address"/>
+
+            <!-- Organization -->
+            <column name="affiliation" type="VARCHAR(128)" remarks="Hospital or medical group affiliation"/>
+            <column name="department" type="VARCHAR(64)" remarks="Department"/>
+
+            <!-- Radiologist-specific -->
+            <column name="is_radiologist" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="can_sign_reports" type="BOOLEAN" defaultValueBoolean="false" remarks="Authorized to sign final reports">
+                <constraints nullable="false"/>
+            </column>
+            <column name="signature_image" type="BLOB" remarks="Digital signature image"/>
+            <column name="preferred_modalities" type="VARCHAR(128)" remarks="Comma-separated list of preferred modalities (CT,MR,US)"/>
+            <column name="daily_capacity" type="INTEGER" remarks="Maximum reports per day"/>
+
+            <!-- Status -->
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Audit Fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_physician_name" tableName="physician">
+            <column name="physician_name"/>
+        </createIndex>
+
+        <createIndex indexName="idx_physician_npi" tableName="physician">
+            <column name="npi"/>
+        </createIndex>
+
+        <createIndex indexName="idx_physician_specialty" tableName="physician">
+            <column name="specialty"/>
+        </createIndex>
+
+        <createIndex indexName="idx_physician_type" tableName="physician">
+            <column name="physician_type"/>
+        </createIndex>
+
+        <createIndex indexName="idx_physician_radiologist" tableName="physician">
+            <column name="is_radiologist"/>
+        </createIndex>
+
+        <createIndex indexName="idx_physician_active" tableName="physician">
+            <column name="is_active"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
