@@ -242,10 +242,10 @@ public class WorklistService {
         }
 
         // Scheduled Performing Physician's Name (0040,0006) PN
-        if (sps.getPerformingPhysician() != null &&
-            sps.getPerformingPhysician().getPhysicianName() != null) {
+        if (sps.getScheduledPerformingPhysician() != null &&
+            sps.getScheduledPerformingPhysician().getPhysicianName() != null) {
             spsItem.setString(Tag.ScheduledPerformingPhysicianName, VR.PN,
-                    sps.getPerformingPhysician().getPhysicianName());
+                    sps.getScheduledPerformingPhysician().getPhysicianName());
         }
 
         // Scheduled Procedure Step Description (0040,0007) LO

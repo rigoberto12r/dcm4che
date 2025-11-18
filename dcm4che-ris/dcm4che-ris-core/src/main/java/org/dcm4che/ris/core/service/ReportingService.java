@@ -69,7 +69,7 @@ public class ReportingService {
             ReportTemplate template = templateRepository.findById(templateId)
                     .orElseThrow(() -> new ResourceNotFoundException("ReportTemplate", templateId));
             applyTemplate(report, template);
-            report.setTemplate(template);
+            report.setReportTemplate(template);
 
             // Increment template usage
             template.incrementUsage();
@@ -144,7 +144,7 @@ public class ReportingService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId));
 
         // Verify user has lock
-        if (!report.isEditableBy(user)) {
+        if (!report.isEditableBy(user, DEFAULT_LOCK_TIMEOUT_MINUTES)) {
             throw new ReportLockedException(reportId,
                     report.getLockedByUser() != null ? report.getLockedByUser().getUsername() : "Unknown");
         }
@@ -168,8 +168,8 @@ public class ReportingService {
         if (updatedContent.getTechniqueText() != null) {
             report.setTechniqueText(updatedContent.getTechniqueText());
         }
-        if (updatedContent.getClinicalHistory() != null) {
-            report.setClinicalHistory(updatedContent.getClinicalHistory());
+        if (updatedContent.getIndicationText() != null) {
+            report.setIndicationText(updatedContent.getIndicationText());
         }
 
         // Transition to DRAFT if still PENDING

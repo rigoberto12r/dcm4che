@@ -111,7 +111,7 @@ public interface ScheduledProcedureStepRepository extends JpaRepository<Schedule
      * Find procedures by performing physician
      */
     @Query("SELECT sps FROM ScheduledProcedureStep sps " +
-           "WHERE sps.performingPhysician.physicianId = :physicianId " +
+           "WHERE sps.scheduledPerformingPhysician.physicianId = :physicianId " +
            "ORDER BY sps.scheduledStartDateTime DESC")
     List<ScheduledProcedureStep> findByPerformingPhysician(@Param("physicianId") Long physicianId);
 
@@ -162,7 +162,7 @@ public interface ScheduledProcedureStepRepository extends JpaRepository<Schedule
      * Find SPS requiring contrast
      */
     @Query("SELECT sps FROM ScheduledProcedureStep sps " +
-           "WHERE sps.contrastAgent IS NOT NULL " +
+           "WHERE sps.requestedContrastAgent IS NOT NULL " +
            "AND sps.spsStatus IN ('SCHEDULED', 'ARRIVED', 'READY') " +
            "ORDER BY sps.scheduledStartDateTime ASC")
     List<ScheduledProcedureStep> findProceduresRequiringContrast();

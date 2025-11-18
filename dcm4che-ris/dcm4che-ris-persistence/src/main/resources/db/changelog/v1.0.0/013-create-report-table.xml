@@ -15,7 +15,10 @@
             </column>
 
             <!-- Study Reference -->
-            <column name="study_id" type="BIGINT" remarks="Associated DICOM study">
+            <column name="study_id" type="BIGINT" remarks="Associated DICOM study"/>
+
+            <!-- Requested Procedure Reference -->
+            <column name="requested_procedure_id" type="BIGINT" remarks="Associated requested procedure">
                 <constraints nullable="false"/>
             </column>
 
@@ -40,7 +43,7 @@
             <column name="recommendations" type="TEXT" remarks="Recommendations section"/>
             <column name="comparison_text" type="TEXT" remarks="Comparison with prior studies"/>
             <column name="technique_text" type="TEXT" remarks="Imaging technique description"/>
-            <column name="clinical_history" type="TEXT" remarks="Clinical history/indication"/>
+            <column name="indication_text" type="TEXT" remarks="Clinical history/indication"/>
 
             <!-- Dictation Information -->
             <column name="dictated_by_user_id" type="BIGINT" remarks="User who dictated/created the report"/>
@@ -97,6 +100,14 @@
                 constraintName="fk_report_study"
                 referencedTableName="study"
                 referencedColumnNames="study_id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="report"
+                baseColumnNames="requested_procedure_id"
+                constraintName="fk_report_requested_procedure"
+                referencedTableName="requested_procedure"
+                referencedColumnNames="requested_procedure_id"
                 onDelete="CASCADE"/>
 
         <addForeignKeyConstraint

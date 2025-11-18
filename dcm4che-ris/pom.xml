@@ -35,9 +35,10 @@
         <module>dcm4che-ris-api</module>
         <module>dcm4che-ris-persistence</module>
         <module>dcm4che-ris-core</module>
-        <module>dcm4che-ris-dicom</module>
-        <module>dcm4che-ris-hl7</module>
-        <module>dcm4che-ris-rest</module>
+        <!-- Pending modules - to be implemented -->
+        <!-- <module>dcm4che-ris-dicom</module> -->
+        <!-- <module>dcm4che-ris-hl7</module> -->
+        <!-- <module>dcm4che-ris-rest</module> -->
     </modules>
 
     <properties>

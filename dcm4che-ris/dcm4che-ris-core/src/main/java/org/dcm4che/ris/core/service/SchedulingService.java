@@ -52,11 +52,11 @@ public class SchedulingService {
         sps.setRequestedProcedure(requestedProcedure);
 
         // Validate performing physician if provided
-        if (sps.getPerformingPhysician() != null && sps.getPerformingPhysician().getPhysicianId() != null) {
-            Physician physician = physicianRepository.findById(sps.getPerformingPhysician().getPhysicianId())
+        if (sps.getScheduledPerformingPhysician() != null && sps.getScheduledPerformingPhysician().getPhysicianId() != null) {
+            Physician physician = physicianRepository.findById(sps.getScheduledPerformingPhysician().getPhysicianId())
                     .orElseThrow(() -> new ResourceNotFoundException("Physician",
-                            sps.getPerformingPhysician().getPhysicianId()));
-            sps.setPerformingPhysician(physician);
+                            sps.getScheduledPerformingPhysician().getPhysicianId()));
+            sps.setScheduledPerformingPhysician(physician);
         }
 
         // Generate SPS ID if not provided
