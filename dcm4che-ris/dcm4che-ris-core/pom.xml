@@ -6,8 +6,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.dcm4che</groupId>
-        <artifactId>dcm4che-ris</artifactId>
+        <groupId>org.dcm4che.ris</groupId>
+        <artifactId>dcm4che-ris-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
