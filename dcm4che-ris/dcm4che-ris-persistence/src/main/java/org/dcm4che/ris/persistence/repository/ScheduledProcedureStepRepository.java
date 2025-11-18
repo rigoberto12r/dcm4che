@@ -23,9 +23,14 @@ public interface ScheduledProcedureStepRepository extends JpaRepository<Schedule
                                                           JpaSpecificationExecutor<ScheduledProcedureStep> {
 
     /**
-     * Find SPS by Scheduled Procedure Step ID
+     * Find SPS by Scheduled Procedure Step ID (database ID)
      */
-    Optional<ScheduledProcedureStep> findBySpsId(String spsId);
+    Optional<ScheduledProcedureStep> findBySpsId(Long spsId);
+
+    /**
+     * Find SPS by Scheduled Procedure Step ID Code (DICOM attribute 0040,0009)
+     */
+    Optional<ScheduledProcedureStep> findBySpsIdCode(String spsIdCode);
 
     /**
      * Find SPS by status

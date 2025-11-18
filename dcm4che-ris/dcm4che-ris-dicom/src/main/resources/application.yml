@@ -1,0 +1,43 @@
+# RIS DICOM Configuration
+# Configuration for DICOM Modality Worklist (MWL) and MPPS services
+
+ris:
+  dicom:
+    # DICOM Application Entity Title
+    ae-title: RIS_SCP
+
+    # Network configuration
+    hostname: 0.0.0.0
+    port: 11112
+
+    # Connection limits
+    max-associations: 50
+    request-timeout: 60000
+    idle-timeout: 60000
+    accept-timeout: 5000
+    release-timeout: 5000
+
+    # PDU configuration
+    send-pdu-length: 16378
+    receive-pdu-length: 16378
+
+    # TLS configuration (optional)
+    tls-enabled: false
+    # tls-protocols: TLSv1.2,TLSv1.3
+    # keystore-path: /path/to/keystore.jks
+    # keystore-password: changeit
+    # keystore-type: JKS
+
+    # Service enable/disable
+    mwl-enabled: true
+    mpps-enabled: true
+
+    # MWL configuration
+    mwl-date-range-days: 7
+    mwl-max-results: 1000
+
+    # Security (optional)
+    # calling-ae-title-whitelist: MODALITY1,MODALITY2,MODALITY3
+
+    # Logging
+    log-dicom-messages: false
