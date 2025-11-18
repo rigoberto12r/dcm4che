@@ -77,6 +77,20 @@ public class PatientService {
     }
 
     /**
+     * Find patient by MRN and issuer (returns Optional).
+     * Used by HL7 handlers.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Patient> findByMRN(String mrn, String issuerOfPatientId) {
+        log.debug("Finding patient with MRN: {} from issuer: {}", mrn, issuerOfPatientId);
+        if (issuerOfPatientId != null && !issuerOfPatientId.isEmpty()) {
+            return patientRepository.findByMrnAndIssuerOfPatientId(mrn, issuerOfPatientId);
+        } else {
+            return patientRepository.findByMrn(mrn);
+        }
+    }
+
+    /**
      * Update patient information.
      */
     public Patient updatePatient(Long patientId, Patient updatedPatient) {

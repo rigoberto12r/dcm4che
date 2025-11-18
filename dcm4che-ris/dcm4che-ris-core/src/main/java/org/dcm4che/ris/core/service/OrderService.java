@@ -116,6 +116,15 @@ public class OrderService {
     }
 
     /**
+     * Find order by placer order number (returns Optional).
+     * Used by HL7 handlers.
+     */
+    @Transactional(readOnly = true)
+    public Optional<ImagingServiceRequest> findByPlacerOrderNumber(String placerOrderNumber) {
+        return orderRepository.findByPlacerOrderNumber(placerOrderNumber);
+    }
+
+    /**
      * Get order by filler order number.
      */
     @Transactional(readOnly = true)
