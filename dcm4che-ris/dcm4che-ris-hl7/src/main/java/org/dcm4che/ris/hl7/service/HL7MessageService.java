@@ -190,7 +190,7 @@ public class HL7MessageService {
             ImagingServiceRequest order = orderService.findByPlacerOrderNumber(placerOrderNumber)
                     .orElseThrow(() -> new HL7Exception("Order not found: " + placerOrderNumber));
 
-            orderService.cancelOrder(order.getOrderId());
+            orderService.cancelOrder(order.getOrderId(), "Canceled via HL7 ORM message");
             log.info("Order canceled successfully: {}", order.getOrderId());
 
             return order;

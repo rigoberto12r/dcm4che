@@ -41,9 +41,10 @@ public class ORMHandler implements HL7Application {
 
     @Override
     public byte[] onMessage(Socket socket, UnparsedHL7Message msg) throws HL7Exception {
+        HL7Message hl7Msg = null;
         try {
             // Parse HL7 message
-            HL7Message hl7Msg = HL7Message.parse(msg.data(), msg.msh().getCharacterSet());
+            hl7Msg = HL7Message.parse(msg.data(), msg.msh().getCharacterSet());
 
             // Get message type
             HL7Segment msh = hl7Msg.msh();

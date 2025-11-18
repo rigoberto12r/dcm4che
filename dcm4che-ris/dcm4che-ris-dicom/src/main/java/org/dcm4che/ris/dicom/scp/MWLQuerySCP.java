@@ -30,7 +30,6 @@ import java.util.List;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class MWLQuerySCP extends BasicCFindSCP {
 
     private final WorklistService worklistService;
