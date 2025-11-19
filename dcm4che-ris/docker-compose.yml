@@ -81,6 +81,26 @@ services:
     volumes:
       - ris_logs:/app/logs
 
+  # RIS Web Interface (React + TypeScript + Material-UI)
+  ris-web:
+    build:
+      context: ./dcm4che-ris-web
+      dockerfile: Dockerfile
+    container_name: ris-web
+    ports:
+      - "3000:80"
+    depends_on:
+      - ris-rest
+    networks:
+      - ris-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
   # pgAdmin (Optional - Database Management UI)
   pgadmin:
     image: dpage/pgadmin4:latest
