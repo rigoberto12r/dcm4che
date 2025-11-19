@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="010-create-scheduled-procedure-step-table" author="dcm4che-ris">
+        <comment>Create scheduled_procedure_step table - DICOM Modality Worklist (MWL) core entity</comment>
+
+        <createTable tableName="scheduled_procedure_step" remarks="Scheduled Procedure Steps - Core entity for DICOM Modality Worklist">
+            <!-- Primary Key -->
+            <column name="sps_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- Requested Procedure Reference -->
+            <column name="requested_procedure_id" type="BIGINT" remarks="Parent requested procedure">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- DICOM Scheduled Procedure Step ID -->
+            <column name="scheduled_procedure_step_id" type="VARCHAR(16)" remarks="DICOM (0040,0009) Scheduled Procedure Step ID">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <!-- Modality and Station -->
+            <column name="modality" type="VARCHAR(16)" remarks="DICOM (0008,0060) Modality - CT, MR, CR, DX, US, etc.">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scheduled_station_ae_title" type="VARCHAR(16)" remarks="DICOM (0040,0001) Scheduled Station AE Title">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scheduled_station_name" type="VARCHAR(64)" remarks="DICOM (0040,0010) Scheduled Station Name"/>
+
+            <!-- Scheduled Time -->
+            <column name="scheduled_start_date_time" type="TIMESTAMP" remarks="DICOM (0040,0002) Scheduled Procedure Step Start Date/Time">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scheduled_end_date_time" type="TIMESTAMP" remarks="Estimated end time"/>
+
+            <!-- Performing Physician -->
+            <column name="performing_physician_id" type="BIGINT" remarks="DICOM (0008,1050) Performing Physician's Name"/>
+
+            <!-- SPS Status -->
+            <column name="sps_status" type="VARCHAR(32)" defaultValue="SCHEDULED" remarks="SCHEDULED, ARRIVED, READY, STARTED, COMPLETED, CANCELED, DISCONTINUED, DEPARTED">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Protocol and Description -->
+            <column name="scheduled_protocol_code" type="VARCHAR(64)" remarks="DICOM (0040,0008) Scheduled Protocol Code Sequence"/>
+            <column name="scheduled_procedure_step_description" type="VARCHAR(255)" remarks="DICOM (0040,0007) Scheduled Procedure Step Description"/>
+
+            <!-- Contrast Information -->
+            <column name="contrast_agent" type="VARCHAR(64)" remarks="Contrast agent to be used"/>
+            <column name="pre_medication" type="VARCHAR(255)" remarks="Pre-medication required"/>
+
+            <!-- Actual Execution Times -->
+            <column name="actual_start_date_time" type="TIMESTAMP" remarks="Actual start time when procedure begins"/>
+            <column name="actual_end_date_time" type="TIMESTAMP" remarks="Actual end time when procedure completes"/>
+
+            <!-- Patient State -->
+            <column name="patient_arrived_at" type="TIMESTAMP" remarks="Time patient checked in/arrived"/>
+            <column name="patient_ready_at" type="TIMESTAMP" remarks="Time patient is ready for procedure"/>
+
+            <!-- Comments and Instructions -->
+            <column name="comments" type="TEXT" remarks="DICOM (0040,0400) Comments on the Scheduled Procedure Step"/>
+            <column name="technologist_instructions" type="TEXT" remarks="Special instructions for technologist"/>
+
+            <!-- Audit Fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign Keys -->
+        <addForeignKeyConstraint
+                baseTableName="scheduled_procedure_step"
+                baseColumnNames="requested_procedure_id"
+                constraintName="fk_sps_requested_procedure"
+                referencedTableName="requested_procedure"
+                referencedColumnNames="requested_procedure_id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="scheduled_procedure_step"
+                baseColumnNames="performing_physician_id"
+                constraintName="fk_sps_performing_physician"
+                referencedTableName="physician"
+                referencedColumnNames="physician_id"
+                onDelete="SET NULL"/>
+
+        <!-- Indexes - CRITICAL FOR MWL PERFORMANCE -->
+        <createIndex indexName="idx_sps_modality_datetime" tableName="scheduled_procedure_step">
+            <column name="modality"/>
+            <column name="scheduled_start_date_time"/>
+        </createIndex>
+
+        <createIndex indexName="idx_sps_ae_title" tableName="scheduled_procedure_step">
+            <column name="scheduled_station_ae_title"/>
+        </createIndex>
+
+        <createIndex indexName="idx_sps_status" tableName="scheduled_procedure_step">
+            <column name="sps_status"/>
+        </createIndex>
+
+        <createIndex indexName="idx_sps_scheduled_date" tableName="scheduled_procedure_step">
+            <column name="scheduled_start_date_time"/>
+        </createIndex>
+
+        <createIndex indexName="idx_sps_requested_procedure" tableName="scheduled_procedure_step">
+            <column name="requested_procedure_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_sps_physician" tableName="scheduled_procedure_step">
+            <column name="performing_physician_id"/>
+        </createIndex>
+
+        <!-- Composite index for MWL queries -->
+        <createIndex indexName="idx_sps_mwl_query" tableName="scheduled_procedure_step">
+            <column name="modality"/>
+            <column name="sps_status"/>
+            <column name="scheduled_start_date_time"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

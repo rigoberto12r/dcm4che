@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="001-create-patient-table" author="dcm4che-ris">
+        <comment>Create patient table - DICOM Patient Module</comment>
+
+        <createTable tableName="patient" remarks="Patient demographics - DICOM Patient Module">
+            <!-- Primary Key -->
+            <column name="patient_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- DICOM Patient Identification -->
+            <column name="mrn" type="VARCHAR(64)" remarks="Medical Record Number - Patient ID (0010,0020)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="issuer_of_patient_id" type="VARCHAR(64)" remarks="Issuer of Patient ID (0010,0021)"/>
+
+            <!-- DICOM Patient Demographic -->
+            <column name="patient_name" type="VARCHAR(255)" remarks="Patient's Name (0010,0010) - PN format: Last^First^Middle^Prefix^Suffix">
+                <constraints nullable="false"/>
+            </column>
+            <column name="birth_date" type="DATE" remarks="Patient's Birth Date (0010,0030)"/>
+            <column name="sex" type="VARCHAR(16)" remarks="Patient's Sex (0010,0040) - M/F/O"/>
+
+            <!-- Contact Information -->
+            <column name="address" type="VARCHAR(255)" remarks="Patient's Address (0010,1040)"/>
+            <column name="phone" type="VARCHAR(64)" remarks="Patient's Telephone Numbers (0010,2154)"/>
+            <column name="email" type="VARCHAR(128)" remarks="Patient's Email"/>
+
+            <!-- Additional Demographics -->
+            <column name="nationality" type="VARCHAR(64)" remarks="Patient's Nationality"/>
+            <column name="ethnic_group" type="VARCHAR(64)" remarks="Ethnic Group (0010,2160)"/>
+            <column name="occupation" type="VARCHAR(128)" remarks="Occupation (0010,2180)"/>
+            <column name="marital_status" type="VARCHAR(16)" remarks="Marital Status"/>
+
+            <!-- Clinical Information -->
+            <column name="allergies" type="TEXT" remarks="Patient allergies and reactions"/>
+            <column name="medical_alerts" type="TEXT" remarks="Medical Alerts (0010,2000)"/>
+            <column name="pregnancy_status" type="VARCHAR(32)" remarks="Pregnancy Status (0010,21C0) - NOT_PREGNANT/PREGNANT/POSSIBLY_PREGNANT/UNKNOWN"/>
+            <column name="weight" type="DECIMAL(5,2)" remarks="Patient's Weight in kg (0010,1030)"/>
+            <column name="height" type="DECIMAL(5,2)" remarks="Patient's Size/Height in cm (0010,1020)"/>
+
+            <!-- Status Flags -->
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true" remarks="Patient record is active">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_vip" type="BOOLEAN" defaultValueBoolean="false" remarks="VIP patient flag"/>
+            <column name="confidentiality_code" type="VARCHAR(16)" remarks="Confidentiality Constraint on Patient Data (0040,3001)"/>
+
+            <!-- Audit Fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_patient_mrn" tableName="patient">
+            <column name="mrn"/>
+        </createIndex>
+
+        <createIndex indexName="idx_patient_name" tableName="patient">
+            <column name="patient_name"/>
+        </createIndex>
+
+        <createIndex indexName="idx_patient_birth_date" tableName="patient">
+            <column name="birth_date"/>
+        </createIndex>
+
+        <createIndex indexName="idx_patient_active" tableName="patient">
+            <column name="is_active"/>
+        </createIndex>
+
+        <createIndex indexName="idx_patient_sex" tableName="patient">
+            <column name="sex"/>
+        </createIndex>
+
+        <createIndex indexName="idx_patient_created_at" tableName="patient">
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

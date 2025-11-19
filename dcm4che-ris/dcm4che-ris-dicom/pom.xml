@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.dcm4che.ris</groupId>
+        <artifactId>dcm4che-ris-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>dcm4che-ris-dicom</artifactId>
+    <packaging>jar</packaging>
+
+    <name>dcm4che-ris-dicom</name>
+    <description>DICOM services for RIS - MWL and MPPS</description>
+
+    <dependencies>
+        <!-- RIS Dependencies -->
+        <dependency>
+            <groupId>org.dcm4che.ris</groupId>
+            <artifactId>dcm4che-ris-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.dcm4che.ris</groupId>
+            <artifactId>dcm4che-ris-persistence</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.dcm4che.ris</groupId>
+            <artifactId>dcm4che-ris-core</artifactId>
+        </dependency>
+
+        <!-- dcm4che DICOM -->
+        <dependency>
+            <groupId>org.dcm4che</groupId>
+            <artifactId>dcm4che-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.dcm4che</groupId>
+            <artifactId>dcm4che-net</artifactId>
+        </dependency>
+
+        <!-- Spring Boot -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

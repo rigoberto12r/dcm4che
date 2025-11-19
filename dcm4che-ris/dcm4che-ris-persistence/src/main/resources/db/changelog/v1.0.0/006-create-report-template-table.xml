@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="006-create-report-template-table" author="dcm4che-ris">
+        <comment>Create report_template table - Radiology report templates</comment>
+
+        <createTable tableName="report_template" remarks="Reusable radiology report templates">
+            <!-- Primary Key -->
+            <column name="template_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- Template Identification -->
+            <column name="template_name" type="VARCHAR(255)" remarks="Template name">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="template_description" type="TEXT" remarks="Template description"/>
+
+            <!-- Classification -->
+            <column name="modality" type="VARCHAR(16)" remarks="Target modality"/>
+            <column name="body_part" type="VARCHAR(64)" remarks="Target body part"/>
+            <column name="template_category" type="VARCHAR(64)" remarks="Category (NORMAL, ABNORMAL, EMERGENCY, etc.)"/>
+
+            <!-- Link to Procedure Catalog -->
+            <column name="procedure_code_id" type="BIGINT" remarks="Associated procedure code"/>
+
+            <!-- Template Content -->
+            <column name="template_text" type="TEXT" remarks="Full template text with placeholders">
+                <constraints nullable="false"/>
+            </column>
+            <column name="default_findings" type="TEXT" remarks="Default findings text"/>
+            <column name="default_impression" type="TEXT" remarks="Default impression text"/>
+            <column name="default_technique" type="TEXT" remarks="Default technique text"/>
+            <column name="default_comparison" type="TEXT" remarks="Default comparison text"/>
+
+            <!-- Macros and Snippets -->
+            <column name="macros" type="TEXT" remarks="JSON map of macro shortcuts and expansions"/>
+
+            <!-- Template Configuration -->
+            <column name="template_format" type="VARCHAR(32)" defaultValue="PLAIN_TEXT" remarks="PLAIN_TEXT, HTML, MARKDOWN"/>
+            <column name="is_default" type="BOOLEAN" defaultValueBoolean="false" remarks="Default template for this modality/body part">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Usage Tracking -->
+            <column name="usage_count" type="INTEGER" defaultValueNumeric="0" remarks="Number of times this template was used">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_used_at" type="TIMESTAMP" remarks="Last time this template was used"/>
+
+            <!-- Creator -->
+            <column name="created_by_user_id" type="BIGINT" remarks="User who created this template"/>
+
+            <!-- Search Keywords -->
+            <column name="keywords" type="VARCHAR(255)" remarks="Search keywords (comma-separated)"/>
+
+            <!-- Status -->
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Audit Fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign Keys -->
+        <addForeignKeyConstraint
+                baseTableName="report_template"
+                baseColumnNames="procedure_code_id"
+                constraintName="fk_report_template_procedure"
+                referencedTableName="procedure_catalog"
+                referencedColumnNames="procedure_code_id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="report_template"
+                baseColumnNames="created_by_user_id"
+                constraintName="fk_report_template_user"
+                referencedTableName="user"
+                referencedColumnNames="user_id"
+                onDelete="SET NULL"/>
+
+        <!-- Now add the FK from procedure_catalog to report_template -->
+        <addForeignKeyConstraint
+                baseTableName="procedure_catalog"
+                baseColumnNames="default_template_id"
+                constraintName="fk_procedure_default_template"
+                referencedTableName="report_template"
+                referencedColumnNames="template_id"
+                onDelete="SET NULL"/>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_template_name" tableName="report_template">
+            <column name="template_name"/>
+        </createIndex>
+
+        <createIndex indexName="idx_template_modality" tableName="report_template">
+            <column name="modality"/>
+        </createIndex>
+
+        <createIndex indexName="idx_template_body_part" tableName="report_template">
+            <column name="body_part"/>
+        </createIndex>
+
+        <createIndex indexName="idx_template_active" tableName="report_template">
+            <column name="is_active"/>
+        </createIndex>
+
+        <createIndex indexName="idx_template_default" tableName="report_template">
+            <column name="is_default"/>
+        </createIndex>
+
+        <createIndex indexName="idx_template_usage" tableName="report_template">
+            <column name="usage_count"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

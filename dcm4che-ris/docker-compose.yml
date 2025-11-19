@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: ris-postgres
+    environment:
+      POSTGRES_DB: ris_db
+      POSTGRES_USER: ris_user
+      POSTGRES_PASSWORD: ris_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - ris-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ris_user -d ris_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # RIS REST API Service
+  ris-rest:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.rest
+    container_name: ris-rest
+    environment:
+      # Spring Boot
+      SPRING_PROFILES_ACTIVE: docker
+
+      # Database
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ris_db
+      SPRING_DATASOURCE_USERNAME: ris_user
+      SPRING_DATASOURCE_PASSWORD: ris_password
+
+      # Liquibase
+      SPRING_LIQUIBASE_ENABLED: "true"
+
+      # DICOM Configuration
+      RIS_DICOM_AE_TITLE: RIS_SCP
+      RIS_DICOM_HOSTNAME: 0.0.0.0
+      RIS_DICOM_PORT: 11112
+      RIS_DICOM_MWL_ENABLED: "true"
+      RIS_DICOM_MPPS_ENABLED: "true"
+
+      # HL7 Configuration
+      RIS_HL7_APPLICATION_NAME: RIS
+      RIS_HL7_FACILITY_NAME: HOSPITAL
+      RIS_HL7_HOSTNAME: 0.0.0.0
+      RIS_HL7_PORT: 2575
+      RIS_HL7_ADT_ENABLED: "true"
+      RIS_HL7_ORM_ENABLED: "true"
+      RIS_HL7_AUTO_CREATE_PATIENTS: "true"
+      RIS_HL7_AUTO_CREATE_ORDERS: "true"
+
+      # REST API
+      SERVER_PORT: 8080
+      SERVER_SERVLET_CONTEXT_PATH: /api/ris
+    ports:
+      - "8080:8080"   # REST API
+      - "11112:11112" # DICOM MWL/MPPS
+      - "2575:2575"   # HL7
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ris-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/ris/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    volumes:
+      - ris_logs:/app/logs
+
+  # RIS Web Interface (React + TypeScript + Material-UI)
+  ris-web:
+    build:
+      context: ./dcm4che-ris-web
+      dockerfile: Dockerfile
+    container_name: ris-web
+    ports:
+      - "3000:80"
+    depends_on:
+      - ris-rest
+    networks:
+      - ris-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # pgAdmin (Optional - Database Management UI)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ris-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ris.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - ris-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  ris_logs:
+    driver: local
+
+networks:
+  ris-network:
+    driver: bridge

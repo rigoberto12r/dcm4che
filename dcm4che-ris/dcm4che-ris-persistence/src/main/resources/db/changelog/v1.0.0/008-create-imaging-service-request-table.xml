@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="008-create-imaging-service-request-table" author="dcm4che-ris">
+        <comment>Create imaging_service_request table - HL7 ORM compliant imaging orders</comment>
+
+        <createTable tableName="imaging_service_request" remarks="Imaging orders from HIS/EMR - HL7 ORM compliant">
+            <!-- Primary Key -->
+            <column name="order_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- Patient and Visit References -->
+            <column name="patient_id" type="BIGINT" remarks="Patient for this order">
+                <constraints nullable="false"/>
+            </column>
+            <column name="visit_id" type="BIGINT" remarks="Associated visit/admission"/>
+
+            <!-- HL7 Order Identification -->
+            <column name="placer_order_number" type="VARCHAR(64)" remarks="HL7 ORC-2: Placer Order Number (from HIS/EMR)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="filler_order_number" type="VARCHAR(64)" remarks="HL7 ORC-3: Filler Order Number (assigned by RIS)">
+                <constraints unique="true"/>
+            </column>
+
+            <!-- Order Status -->
+            <column name="order_status" type="VARCHAR(32)" defaultValue="PENDING" remarks="PENDING, SCHEDULED, IN_PROGRESS, COMPLETED, CANCELED, DISCONTINUED">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Order Priority -->
+            <column name="order_priority" type="VARCHAR(16)" defaultValue="ROUTINE" remarks="ROUTINE, URGENT, STAT, ASAP">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Ordering Information -->
+            <column name="order_date_time" type="TIMESTAMP" remarks="HL7 ORC-9: Date/Time of Transaction">
+                <constraints nullable="false"/>
+            </column>
+            <column name="requesting_physician_id" type="BIGINT" remarks="Physician who ordered the exam">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Clinical Information -->
+            <column name="reason_for_exam" type="TEXT" remarks="Clinical indication / reason for exam"/>
+            <column name="clinical_info" type="TEXT" remarks="Clinical history and symptoms"/>
+            <column name="provisional_diagnosis" type="VARCHAR(255)" remarks="Provisional/working diagnosis"/>
+
+            <!-- Confidentiality -->
+            <column name="confidentiality_code" type="VARCHAR(16)" remarks="Confidentiality constraint (NORMAL, VIP, RESTRICTED, etc.)"/>
+
+            <!-- Notes -->
+            <column name="notes" type="TEXT" remarks="Additional notes or instructions"/>
+
+            <!-- Audit Fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign Keys -->
+        <addForeignKeyConstraint
+                baseTableName="imaging_service_request"
+                baseColumnNames="patient_id"
+                constraintName="fk_order_patient"
+                referencedTableName="patient"
+                referencedColumnNames="patient_id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="imaging_service_request"
+                baseColumnNames="visit_id"
+                constraintName="fk_order_visit"
+                referencedTableName="visit"
+                referencedColumnNames="visit_id"
+                onDelete="SET NULL"/>
+
+        <addForeignKeyConstraint
+                baseTableName="imaging_service_request"
+                baseColumnNames="requesting_physician_id"
+                constraintName="fk_order_requesting_physician"
+                referencedTableName="physician"
+                referencedColumnNames="physician_id"
+                onDelete="RESTRICT"/>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_order_patient" tableName="imaging_service_request">
+            <column name="patient_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_visit" tableName="imaging_service_request">
+            <column name="visit_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_placer_number" tableName="imaging_service_request">
+            <column name="placer_order_number"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_filler_number" tableName="imaging_service_request">
+            <column name="filler_order_number"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_status" tableName="imaging_service_request">
+            <column name="order_status"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_priority" tableName="imaging_service_request">
+            <column name="order_priority"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_date" tableName="imaging_service_request">
+            <column name="order_date_time"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_physician" tableName="imaging_service_request">
+            <column name="requesting_physician_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

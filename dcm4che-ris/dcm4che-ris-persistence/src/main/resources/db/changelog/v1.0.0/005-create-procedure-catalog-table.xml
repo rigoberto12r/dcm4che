@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="005-create-procedure-catalog-table" author="dcm4che-ris">
+        <comment>Create procedure_catalog table - Master catalog of imaging procedures</comment>
+
+        <createTable tableName="procedure_catalog" remarks="Master catalog of available imaging procedures with billing codes">
+            <!-- Primary Key -->
+            <column name="procedure_code_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- Procedure Identification -->
+            <column name="procedure_code" type="VARCHAR(64)" remarks="Internal procedure code">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="procedure_name" type="VARCHAR(255)" remarks="Procedure name/description">
+                <constraints nullable="false"/>
+            </column>
+            <column name="procedure_description" type="TEXT" remarks="Detailed description"/>
+
+            <!-- Modality and Body Part -->
+            <column name="modality" type="VARCHAR(16)" remarks="Primary modality (CT, MR, CR, DX, US, etc.)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="body_part" type="VARCHAR(64)" remarks="Body part examined (CHEST, ABDOMEN, HEAD, etc.)"/>
+
+            <!-- Coding Systems -->
+            <column name="cpt_code" type="VARCHAR(16)" remarks="CPT Code (Current Procedural Terminology)"/>
+            <column name="loinc_code" type="VARCHAR(16)" remarks="LOINC Code"/>
+            <column name="snomed_code" type="VARCHAR(32)" remarks="SNOMED CT Code"/>
+            <column name="radlex_code" type="VARCHAR(32)" remarks="RadLex Code"/>
+
+            <!-- Procedure Characteristics -->
+            <column name="estimated_duration_minutes" type="INTEGER" defaultValueNumeric="30" remarks="Estimated duration for scheduling"/>
+            <column name="contrast_required" type="VARCHAR(16)" defaultValue="NO" remarks="NO, OPTIONAL, REQUIRED"/>
+            <column name="contrast_agent" type="VARCHAR(64)" remarks="Specific contrast agent (e.g., Iodine-based, Gadolinium)"/>
+            <column name="patient_preparation" type="TEXT" remarks="Patient preparation instructions"/>
+            <column name="technologist_instructions" type="TEXT" remarks="Special instructions for technologist"/>
+
+            <!-- Radiation -->
+            <column name="dose_reference_level" type="DOUBLE" remarks="Dose Reference Level in mGy (for radiation procedures)"/>
+
+            <!-- Billing -->
+            <column name="price" type="DECIMAL(10,2)" remarks="Procedure price/cost"/>
+            <column name="reimbursement_amount" type="DECIMAL(10,2)" remarks="Insurance reimbursement amount"/>
+
+            <!-- Classification -->
+            <column name="procedure_category" type="VARCHAR(64)" remarks="Category: CARDIAC, NEURO, MUSCULOSKELETAL, INTERVENTIONAL, etc."/>
+            <column name="complexity_level" type="INTEGER" remarks="Complexity level 1-5"/>
+
+            <!-- Requirements -->
+            <column name="requires_physician_present" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="requires_preauth" type="BOOLEAN" defaultValueBoolean="false" remarks="Requires pre-authorization from insurance">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Default Template Reference (added later after report_template exists) -->
+            <column name="default_template_id" type="BIGINT" remarks="Default report template for this procedure"/>
+
+            <!-- Searchability -->
+            <column name="keywords" type="VARCHAR(255)" remarks="Search keywords (comma-separated)"/>
+
+            <!-- Status -->
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- Notes -->
+            <column name="notes" type="TEXT" remarks="Additional notes"/>
+
+            <!-- Audit Fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_procedure_code" tableName="procedure_catalog">
+            <column name="procedure_code"/>
+        </createIndex>
+
+        <createIndex indexName="idx_procedure_modality" tableName="procedure_catalog">
+            <column name="modality"/>
+        </createIndex>
+
+        <createIndex indexName="idx_procedure_body_part" tableName="procedure_catalog">
+            <column name="body_part"/>
+        </createIndex>
+
+        <createIndex indexName="idx_procedure_active" tableName="procedure_catalog">
+            <column name="is_active"/>
+        </createIndex>
+
+        <createIndex indexName="idx_procedure_cpt" tableName="procedure_catalog">
+            <column name="cpt_code"/>
+        </createIndex>
+
+        <createIndex indexName="idx_procedure_loinc" tableName="procedure_catalog">
+            <column name="loinc_code"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

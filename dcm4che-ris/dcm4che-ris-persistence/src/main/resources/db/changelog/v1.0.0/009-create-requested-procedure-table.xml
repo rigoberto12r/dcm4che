@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="009-create-requested-procedure-table" author="dcm4che-ris">
+        <comment>Create requested_procedure table - Individual imaging procedures within an order</comment>
+
+        <createTable tableName="requested_procedure" remarks="Requested imaging procedures - DICOM Requested Procedure Module">
+            <!-- Primary Key -->
+            <column name="requested_procedure_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <!-- Order Reference -->
+            <column name="order_id" type="BIGINT" remarks="Parent imaging service request">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- DICOM Study Identifiers -->
+            <column name="study_instance_uid" type="VARCHAR(64)" remarks="DICOM (0020,000D) Study Instance UID">
+                <constraints unique="true"/>
+            </column>
+            <column name="accession_number" type="VARCHAR(16)" remarks="DICOM (0008,0050) Accession Number">
+                <constraints unique="true"/>
+            </column>
+
+            <!-- Procedure Reference -->
+            <column name="procedure_code_id" type="BIGINT" remarks="Reference to procedure catalog"/>
+
+            <!-- Procedure Description -->
+            <column name="requested_procedure_description" type="VARCHAR(255)" remarks="DICOM (0032,1060) Requested Procedure Description"/>
+            <column name="requested_procedure_code" type="VARCHAR(16)" remarks="Internal procedure code"/>
+
+            <!-- Contrast Information -->
+            <column name="contrast_agent" type="VARCHAR(64)" remarks="DICOM (0018,0010) Contrast/Bolus Agent"/>
+            <column name="patient_preparation" type="TEXT" remarks="Special patient preparation required"/>
+
+            <!-- Audit Fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign Keys -->
+        <addForeignKeyConstraint
+                baseTableName="requested_procedure"
+                baseColumnNames="order_id"
+                constraintName="fk_requested_procedure_order"
+                referencedTableName="imaging_service_request"
+                referencedColumnNames="order_id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="requested_procedure"
+                baseColumnNames="procedure_code_id"
+                constraintName="fk_requested_procedure_catalog"
+                referencedTableName="procedure_catalog"
+                referencedColumnNames="procedure_code_id"
+                onDelete="SET NULL"/>
+
+        <!-- Indexes -->
+        <createIndex indexName="idx_requested_procedure_order" tableName="requested_procedure">
+            <column name="order_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_requested_procedure_study_uid" tableName="requested_procedure">
+            <column name="study_instance_uid"/>
+        </createIndex>
+
+        <createIndex indexName="idx_requested_procedure_accession" tableName="requested_procedure">
+            <column name="accession_number"/>
+        </createIndex>
+
+        <createIndex indexName="idx_requested_procedure_code" tableName="requested_procedure">
+            <column name="procedure_code_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

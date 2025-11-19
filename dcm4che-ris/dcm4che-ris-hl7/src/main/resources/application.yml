@@ -1,0 +1,50 @@
+# RIS HL7 Configuration
+# Configuration for HL7 v2.x message handlers (ADT and ORM)
+
+ris:
+  hl7:
+    # Application identification
+    application-name: RIS
+    facility-name: HOSPITAL
+
+    # Network configuration
+    hostname: 0.0.0.0
+    port: 2575
+
+    # Connection limits
+    max-connections: 50
+    request-timeout: 60000
+    idle-timeout: 60000
+    accept-timeout: 5000
+    release-timeout: 5000
+    socket-buffer-size: 8192
+
+    # TLS configuration (optional)
+    tls-enabled: false
+    # tls-protocols: TLSv1.2,TLSv1.3
+    # keystore-path: /path/to/keystore.jks
+    # keystore-password: changeit
+    # keystore-type: JKS
+
+    # Message handlers enable/disable
+    adt-enabled: true    # Admission, Discharge, Transfer (patient demographics)
+    orm-enabled: true    # Order Messages (radiology orders)
+    oru-enabled: false   # Observation Result (results - future)
+
+    # Security (optional)
+    # sending-application-whitelist: HIS,EMR,PACS
+
+    # Auto-create settings
+    auto-create-patients: true
+    auto-create-orders: true
+
+    # Default issuer of patient ID
+    # Used when not specified in HL7 message
+    default-issuer-of-patient-id: HOSPITAL
+
+    # Logging
+    log-hl7-messages: false
+
+    # HL7 protocol settings
+    character-encoding: UTF-8
+    hl7-version: "2.5"
